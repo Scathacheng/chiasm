@@ -34,6 +34,3 @@ rm *.gz
 # convert GFF annotation to GTF conform format for transcriptomic read counting
 sed -rn 's/([A-Za-z0-9_-]+)=([^;]+);?\s?/\1 "\2"; /gp' genome/amel.gff > genome/amel.pseudo.gtf
 awk '{ if(match($0, "ID \"([^\"]+)\";?", id)) { if($3 == "gene") { last_gene = id[1]; last_transcript = ""}; if($3 == "transcript" || $3 == "mRNA") {last_transcript = id[1]}; for(i=1;i<=NF;i++){if(i==9) printf("gene_id \"%s\"; transcript_id \"%s\"; ", last_gene, last_transcript); printf($i); if(i<9) printf("\t"); if(i>=9) printf(" ")} print ""}}' genome/amel.pseudo.gtf > genome/amel.gtf
-
-# generate SEGEMEHL index of the genome (3.7GB)
-segemehl -x genome/amel.mehl.idx -d genome/amel.fna

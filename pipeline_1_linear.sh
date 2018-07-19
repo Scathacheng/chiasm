@@ -17,6 +17,8 @@ cat ../../sra_data.tsv | while read sra paired pop tissue enrichment; do
     rm ${sra}*.gz
 done
 cd -
+
+# counting reads per feature
 featureCounts -T 8 -a genome/amel.gtf -o linear/reads/featureCounts.tsv linear/reads/*.bam
 circquant -v -a 5 -i 50 -I 50000 -S -g genome/amel.gff -H linear/reads/featureCounts.tsv -s linear/*.split.bed > linear/linear.quant.bed
 circstats -c -v -g genome/amel.gff < linear/linear.quant.bed | tee linear/linear.quant.stat.bed | wc -l # 6266 junctions (6214 with exon boundary)
