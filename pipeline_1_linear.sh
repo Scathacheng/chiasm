@@ -19,16 +19,24 @@ done
 cd -
 
 # counting reads per feature
-featureCounts -T 8 -a genome/amel.gtf -o linear/reads/featureCounts.tsv linear/reads/*.bam
-circquant -v -a 5 -i 50 -I 50000 -S -g genome/amel.gff -H linear/reads/featureCounts.tsv -s linear/*.split.bed > linear/linear.quant.bed
-circstats -c -v -g genome/amel.gff < linear/linear.quant.bed | tee linear/linear.quant.stat.bed | wc -l # 6266 junctions (6214 with exon boundary)
-awk '/^#/ || $5 >= 10{print}' linear/linear.quant.stat.bed | tee linear/linear.quant10.stat.bed | wc -l	# 381 with min 10 reads
+featureCounts -T 8 -a genome/amel.gtf -o linear/featureCounts.tsv linear/reads/*.bam
+
+# aggregate junctions
+circquant -v -a 5 -i 50 -I 50000 -S -g genome/amel.gff -H linear/featureCounts.tsv -s linear/*.split.bed > linear/linear.quant.bed
+
+# add annotions
+circstats -c -v -g genome/amel.gff < linear/linear.quant.bed | tee linear/linear.quant.stat.bed | wc -l
+
+# filter junctions with less than 10 junction spanning reads
+awk '/^#/ || $5 >= 10{print}' linear/linear.quant.stat.bed | tee linear/linear.quant10.stat.bed | wc -l
 cp linear/linear.quant10.stat.bed linear/linear.junctions.bed
-junctcut -v -g genome/amel.gff -f genome/amel.fna -l 0 -u 10 -d 10 < linear/linear.junctions.bed > linear/linear.junctions.splice.fna # 372 exonic
-grep -i ........AGGT linear/linear.junctions.splice.fna | wc -l 	# 359 with usual splice signal
+
+# analyze splice site
+junctcut -v -g genome/amel.gff -f genome/amel.fna -l 0 -u 10 -d 10 < linear/linear.junctions.bed > linear/linear.junctions.splice.fna
+grep -i ........AGGT linear/linear.junctions.splice.fna | wc -l
 seq2logo < linear/linear.junctions.splice.fna > linear/linear.junctions.splice.ps
 
-# Intron analysis
+# intron analysis
 junctcut -v -g genome/amel.gff -f genome/amel.fna -l 0 -u 500 -d 500 < linear/linear.junctions.bed > linear/linear.intron500.fna
 junctcut -v -g genome/amel.gff -f genome/amel.fna -l 5 -u 500 -d 500 < linear/linear.junctions.bed > linear/linear.intron505.fna
 junctcut -v -g genome/amel.gff -f genome/amel.fna -l 0 -u -1 < linear/linear.junctions.bed > linear/linear.5intron.fna
